@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useMemo, useState } from "react";
 import {
   flexRender,
   getCoreRowModel,
@@ -12,7 +12,6 @@ import {
   ArrowUpDown,
   ChevronLeft,
   ChevronRight,
-  Copy,
   FileBox,
   FolderOpen,
   ListFilter,

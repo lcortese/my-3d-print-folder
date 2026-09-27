@@ -31,30 +31,57 @@ export function runOnce(command: string, args: string[]): Promise<RunResult> {
   })
 }
 
+/** A long lived process that runs with this terminal inherited. */
+export interface ForegroundProcess {
+  /** Settles with the exit status once the process is gone. */
+  closed: Promise<RunResult>
+  /** Forward a signal to the process, when it is still running. */
+  signal(signal: NodeJS.Signals): void
+}
+
+/**
+ * Start a long lived process in the foreground.
+ *
+ * The process inherits this terminal's stdio, so it reads the same stdin and
+ * writes to the same console it would have if it had been started on its own.
+ * That matters on Windows: a piped stdin hangs `tsx watch` before it runs the
+ * script (privatenumber/tsx#623).
+ */
+export function spawnForeground(command: string, args: string[], env?: NodeJS.ProcessEnv): ForegroundProcess {
+  const child = spawn(command, args, spawnOptions(env))
+
+  const closed = new Promise<RunResult>((resolve, reject) => {
+    child.on('error', reject)
+    child.on('exit', (code, signal) => resolve({ code: code ?? (signal ? 1 : 0), signal }))
+  })
+
+  return {
+    closed,
+    signal: (signal) => {
+      if (!child.killed) child.kill(signal)
+    },
+  }
+}
+
 /**
  * Run a long lived process in the foreground.
  *
  * Terminal signals are forwarded to the child so `Ctrl+C` stops it cleanly and
  * the launcher itself never exits with a different status than its child.
  */
-export function runForeground(command: string, args: string[], env?: NodeJS.ProcessEnv): Promise<void> {
-  return new Promise<void>((resolve, reject) => {
-    const child = spawn(command, args, spawnOptions(env))
+export async function runForeground(command: string, args: string[], env?: NodeJS.ProcessEnv): Promise<void> {
+  const child = spawnForeground(command, args, env)
 
-    const forward = (signal: NodeJS.Signals) => (): void => {
-      if (!child.killed) child.kill(signal)
-    }
-    const onInterrupt = forward('SIGINT')
-    const onTerminate = forward('SIGTERM')
-    process.on('SIGINT', onInterrupt)
-    process.on('SIGTERM', onTerminate)
+  const forward = (signal: NodeJS.Signals) => (): void => child.signal(signal)
+  const onInterrupt = forward('SIGINT')
+  const onTerminate = forward('SIGTERM')
+  process.on('SIGINT', onInterrupt)
+  process.on('SIGTERM', onTerminate)
 
-    child.on('error', reject)
-    child.on('exit', (code, signal) => {
-      process.off('SIGINT', onInterrupt)
-      process.off('SIGTERM', onTerminate)
-      process.exitCode = code ?? (signal ? 1 : 0)
-      resolve()
-    })
-  })
+  try {
+    process.exitCode = (await child.closed).code
+  } finally {
+    process.off('SIGINT', onInterrupt)
+    process.off('SIGTERM', onTerminate)
+  }
 }

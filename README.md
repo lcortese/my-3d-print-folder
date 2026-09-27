@@ -30,14 +30,24 @@ shell win over the file.
 `MODELS_ROOT` is the only mandatory variable; an invalid `APP_MODE` or
 `API_MODE` stops the process with a clear message instead of falling back.
 
+The packaged desktop app reads the same `.env` from the folder that holds its
+executable. Its window always serves the built bundle, so `APP_MODE` is
+`production` there: `develop` hands the UI to the Vite dev server, which a
+packaged app does not have. The catalogue is created under the application
+folder, or wherever `DB_PATH` points.
+
 ## Scripts
 
 | Command                | What it does                                                              |
 | ---------------------- | ------------------------------------------------------------------------- |
-| `npm start`            | Starts the web **and** the API (`start:web` + `start:server` in parallel). |
-| `npm run start:web`    | Starts the web app according to `APP_MODE`.                               |
-| `npm run start:server` | Starts the API according to `API_MODE` (scans the library when enabled).  |
-| `npm run build`        | Type-checks everything and builds the UI into `dist/`.                    |
+| `npm start`            | Starts the app **and** the API (`start:app` + `start:api` in parallel).   |
+| `npm run start:app`    | Starts the app according to `APP_MODE`.                                   |
+| `npm run start:api`    | Starts the API according to `API_MODE` (scans the library when enabled).  |
+| `npm run start:desktop` | Builds everything and opens the app in a desktop window (Electron).       |
+| `npm run build`        | Builds the app **and** the API (`build:app` + `build:api`).               |
+| `npm run build:app`    | Builds the UI into `dist/`.                                               |
+| `npm run build:api`    | Compiles the API and the desktop shell into `dist-electron/`.             |
+| `npm run package:win`  | Builds everything and writes the Windows app to `release/`.               |
 | `npm run scan`         | Rebuilds `data/catalog.db` and exits.                                     |
-| `npm run typecheck`    | `tsc -b` only.                                                            |
+| `npm run check:types`  | `tsc -b` only (the build does not type-check).                            |
 | `npm run lint`         | Oxlint.                                                                   |

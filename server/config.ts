@@ -89,7 +89,7 @@ const modelsRoot = path.resolve(requiredEnv('MODELS_ROOT', 'absolute path of you
 
 const dbPath = path.resolve(process.env.DB_PATH?.trim() || DEFAULTS.dbPath)
 
-/** Mode of the web app: decides how `npm run start:web` serves the UI. */
+/** Mode of the app: decides how `npm run start:app` serves the UI. */
 const appMode = toMode(process.env.APP_MODE, DEFAULTS.appMode, 'APP_MODE')
 
 /** Mode of the API server: decides reload, logging and static serving. */

@@ -1,0 +1,38 @@
+# Packaging configuration for the Windows desktop build (electron-builder).
+#
+# The output is a portable folder: the executable, the support files, and the
+# `.env` the app reads from next to the executable.
+#
+# `asar` is off on purpose: the API runs as a child process and reads the UI
+# bundle, the database and the `.env` as ordinary files, which keeps it away
+# from the packaging quirks of an archive.
+
+appId: com.printcatalog.desktop
+productName: "3D Print Catalog"
+
+# Electron-builder packs the application into `resources/app.asar` when this is
+# left out, and the API child process cannot run from an archive: it has to read
+# `dist/` and write `data/catalog.db` as ordinary files, and its entry point has
+# to exist on disk.
+asar: false
+
+directories:
+  output: release
+
+# What the app needs at runtime: the built UI, the compiled API and desktop
+# shell, and the production dependencies (express, dotenv), which
+# electron-builder adds on its own.
+files:
+  - package.json
+  - dist/**
+  - dist-electron/**
+
+# There are no native modules to compile against Electron.
+npmRebuild: false
+
+win:
+  target:
+    - target: dir
+      arch: [x64]
+    - target: zip
+      arch: [x64]

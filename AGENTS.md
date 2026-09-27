@@ -115,6 +115,7 @@ works; this file documents how the code is written and organised.
   creation falls back `birthtime -> mtime -> ctime`.
 - The theme follows the operating system (`prefers-color-scheme`, applied before
   the first paint; the toaster uses `theme="system"`).
-- Scripts are `start`, `start:web`, `start:server`, `build`, `scan`, `typecheck`
-  and `lint`: **nothing called `dev`**. `APP_MODE`/`API_MODE` decide how the web
-  and the API start (details in `README.md`).
+- Scripts are `start`, `start:app`, `start:api`, `start:desktop`, `build`,
+  `build:app`, `build:api`, `package:win`, `scan`, `check:types` and `lint`:
+  **nothing called `dev`**. `APP_MODE`/`API_MODE` decide how the app and the API
+  start (details in `README.md`).

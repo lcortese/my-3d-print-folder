@@ -9,7 +9,9 @@ lerna-debug.log*
 
 node_modules
 dist
+dist-electron
 dist-ssr
+release
 *.local
 
 # Local catalogue database (regenerate with `npm run scan`)

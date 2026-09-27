@@ -254,7 +254,7 @@ app.use((req: Request, res: Response) => {
   res
     .status(503)
     .type('text/plain')
-    .send('The UI bundle is missing. Run "npm run build", or start the web app with "npm run start:web".')
+    .send('The UI bundle is missing. Run "npm run build", or start the app with "npm run start:app".')
 })
 
 /**

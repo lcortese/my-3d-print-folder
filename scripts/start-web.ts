@@ -4,8 +4,9 @@
  *   develop             -> Vite dev server (no build, hot reload)
  *   staging, production -> Vite preview of `dist/` (built once when missing)
  *
- * Both variants listen on WEB_PORT and proxy `/api` to the API server, so the
- * browser only ever talks to one origin.
+ * Both variants listen on WEB_PORT; the browser calls the API on
+ * API_HOST:API_PORT directly, because `/api` is not proxied. The API therefore
+ * answers CORS for the web origin.
  */
 import { existsSync } from 'node:fs'
 import path from 'node:path'
@@ -19,7 +20,7 @@ const distIndex = path.resolve(process.cwd(), 'dist', 'index.html')
 async function main(): Promise<void> {
   if (config.appMode === 'develop') {
     console.log(`[web] APP_MODE=develop: vite dev server on ${webUrl()} (hot reload, no build)`)
-    console.log(`[web] /api is proxied to ${config.apiHost}:${config.apiPort}`)
+    console.log(`[web] /api is called directly on ${config.apiHost}:${config.apiPort}`)
     await runForeground(vite, ['--port', String(config.webPort), '--strictPort'])
     return
   }

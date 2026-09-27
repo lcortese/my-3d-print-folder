@@ -10,10 +10,9 @@ export default defineConfig(({ mode }) => {
   const env = loadEnv(mode, process.cwd(), '')
   const pick = (key: string, fallback: string): string => process.env[key] ?? env[key] ?? fallback
 
-  const apiTarget = `http://${pick('API_HOST', '127.0.0.1')}:${pick('API_PORT', '4317')}`
+  const apiUrl = `http://${pick('API_HOST', '127.0.0.1')}:${pick('API_PORT', '4317')}`
   const webPort = Number.parseInt(pick('WEB_PORT', '5173'), 10)
   const appMode = pick('APP_MODE', 'develop')
-  const proxy = { '/api': { target: apiTarget, changeOrigin: false } }
 
   return {
     plugins: [react(), tailwindcss()],
@@ -22,11 +21,17 @@ export default defineConfig(({ mode }) => {
         '@': fileURLToPath(new URL('./src', import.meta.url)),
       },
     },
+    // The web app calls the API directly: there is no proxy, so the browser
+    // needs the absolute origin of the API. It is injected from the same
+    // variables the API itself reads, which keeps host and port defined in a
+    // single place. The API answers CORS for the origins in CORS_ORIGINS.
+    define: {
+      'import.meta.env.VITE_API_URL': JSON.stringify(apiUrl),
+    },
     // `vite` (develop) and `vite preview` (staging/production) share the port.
     server: {
       port: webPort,
       strictPort: true,
-      proxy,
       // The project lives on a Windows drive mounted through 9p, where inotify
       // events do not cross the Windows/Linux boundary: without polling the dev
       // server never notices an edited file (no HMR, no reload). The heavy and
@@ -44,7 +49,7 @@ export default defineConfig(({ mode }) => {
         ],
       },
     },
-    preview: { port: webPort, strictPort: true, proxy },
+    preview: { port: webPort, strictPort: true },
     build: {
       outDir: 'dist',
       sourcemap: appMode !== 'production',
